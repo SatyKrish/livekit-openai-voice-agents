@@ -1,0 +1,27 @@
+services:
+  livekit-server:
+    image: livekit/livekit-server:latest
+    entrypoint: "/livekit-server --config /livekit.yaml --node-ip 127.0.0.1"
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+    volumes:
+      - ./livekit.yaml:/livekit.yaml
+
+  livekit-agent:
+    build:
+      context: ./agent
+      dockerfile: Dockerfile
+    image: azureaivoicedemo.azurecr.io/livekit-agent:latest
+    env_file:
+      - ./agent/.env
+
+  livekit-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: azureaivoicedemo.azurecr.io/livekit-frontend:latest
+    env_file:
+      - ./frontend/.env
+    ports:
+      - "3000:3000"

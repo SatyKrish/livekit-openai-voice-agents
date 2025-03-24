@@ -1,0 +1,26 @@
+name: livekit-app
+resourceGroup: rg-ai-services-eus
+location: eastus2
+metadata:
+  version: 1.0.0
+
+# services:
+#   livekit-server:
+#     # livekit-server uses a public image so no build is required.
+#     image: livekit/livekit-server:latest
+#     host: containerapp
+#   livekit-agent:
+#     project: ./agent
+#     language: py
+#     host: containerapp
+#     # docker:
+#     #   remoteBuild: true
+#   livekit-frontend:
+#     project: ./frontend
+#     language: ts
+#     host: containerapp
+#     docker:
+#       remoteBuild: true
+
+infrastructure:
+  template: main.bicep

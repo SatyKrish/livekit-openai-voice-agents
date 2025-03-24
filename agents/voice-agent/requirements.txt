@@ -1,0 +1,7 @@
+livekit-agents
+livekit-plugins-openai
+livekit-plugins-azure
+livekit-plugins-silero
+livekit-plugins-turn_detector
+python-dotenv
+pyPDF2
