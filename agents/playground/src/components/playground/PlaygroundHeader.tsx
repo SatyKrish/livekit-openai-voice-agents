@@ -3,6 +3,8 @@ import { LoadingSVG } from "@/components/button/LoadingSVG";
 import { SettingsDropdown } from "@/components/playground/SettingsDropdown";
 import { useConfig } from "@/hooks/useConfig";
 import { ConnectionState } from "livekit-client";
+import { Session } from "next-auth";
+import { signOut } from "next-auth/react";
 import { ReactNode } from "react";
 
 type PlaygroundHeader = {
@@ -13,6 +15,7 @@ type PlaygroundHeader = {
   accentColor: string;
   connectionState: ConnectionState;
   onConnectClicked: () => void;
+  userSession?: Session | null;
 };
 
 export const PlaygroundHeader = ({
@@ -23,6 +26,7 @@ export const PlaygroundHeader = ({
   height,
   onConnectClicked,
   connectionState,
+  userSession,
 }: PlaygroundHeader) => {
   const { config } = useConfig();
   return (
@@ -41,6 +45,22 @@ export const PlaygroundHeader = ({
         </div>
       </div>
       <div className="flex basis-1/3 justify-end items-center gap-2">
+        {/* User info and sign-out button */}
+        {userSession && (
+          <div className="flex items-center mr-2">
+            <div className="hidden lg:flex text-white text-xs mr-2">
+              {userSession.user?.name || userSession.user?.email || "User"}
+            </div>
+            <Button
+              accentColor="gray"
+              className="text-xs"
+              onClick={() => signOut({ callbackUrl: '/' })}
+            >
+              Sign out
+            </Button>
+          </div>
+        )}
+        
         {githubLink && (
           <a
             href={githubLink}
@@ -111,8 +131,8 @@ const LKLogo = () => (
 
 const GithubSVG = () => (
   <svg
-    width="24"
-    height="24"
+    width="18"
+    height="18"
     viewBox="0 0 98 96"
     xmlns="http://www.w3.org/2000/svg"
   >

@@ -6,7 +6,7 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { Inter } from "next/font/google";
 import Head from "next/head";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { PlaygroundConnect } from "@/components/PlaygroundConnect";
 import Playground from "@/components/playground/Playground";
@@ -15,6 +15,8 @@ import { ConfigProvider, useConfig } from "@/hooks/useConfig";
 import { ConnectionMode, ConnectionProvider, useConnection } from "@/hooks/useConnection";
 import { useMemo } from "react";
 import { ToastProvider, useToast } from "@/components/toast/ToasterProvider";
+import { useSession, signIn } from "next-auth/react";
+import { useRouter } from "next/router";
 
 const themeColors = [
   "cyan",
@@ -45,8 +47,25 @@ export function HomeInner() {
   const { shouldConnect, wsUrl, token, mode, connect, disconnect } =
     useConnection();
   
-  const {config} = useConfig();
+  const { config } = useConfig();
   const { toastMessage, setToastMessage } = useToast();
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Check authentication
+  useEffect(() => {
+    // Wait for authentication to complete
+    if (status === "loading") return;
+    
+    // If not authenticated, redirect to sign-in
+    if (status === "unauthenticated") {
+      signIn();
+      return;
+    }
+    
+    setIsLoading(false);
+  }, [status, router]);
 
   const handleConnect = useCallback(
     async (c: boolean, mode: ConnectionMode) => {
@@ -63,7 +82,16 @@ export function HomeInner() {
       return true;
     }
     return false;
-  }, [wsUrl])
+  }, [wsUrl]);
+
+  // Show loading state while authentication is being checked
+  if (isLoading) {
+    return (
+      <div className="flex left-0 top-0 w-full h-full bg-black repeating-square-background items-center justify-center text-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -114,6 +142,7 @@ export function HomeInner() {
                 const m = process.env.NEXT_PUBLIC_LIVEKIT_URL ? "env" : mode;
                 handleConnect(c, m);
               }}
+              userSession={session}
             />
             <RoomAudioRenderer />
             <StartAudio label="Click to enable audio playback" />

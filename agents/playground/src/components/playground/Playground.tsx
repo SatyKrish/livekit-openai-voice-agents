@@ -27,6 +27,7 @@ import {
 import { ConnectionState, LocalParticipant, Track } from "livekit-client";
 import { QRCodeSVG } from "qrcode.react";
 import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { Session } from "next-auth";
 import tailwindTheme from "../../lib/tailwindTheme.preval";
 
 export interface PlaygroundMeta {
@@ -38,6 +39,7 @@ export interface PlaygroundProps {
   logo?: ReactNode;
   themeColors: string[];
   onConnect: (connect: boolean, opts?: { token: string; url: string }) => void;
+  userSession?: Session | null;
 }
 
 const headerHeight = 56;
@@ -46,6 +48,7 @@ export default function Playground({
   logo,
   themeColors,
   onConnect,
+  userSession,
 }: PlaygroundProps) {
   const { config, setUserSettings } = useConfig();
   const { name } = useRoomInfo();
@@ -391,6 +394,7 @@ export default function Playground({
         onConnectClicked={() =>
           onConnect(roomState === ConnectionState.Disconnected)
         }
+        userSession={userSession}
       />
       <div
         className={`flex gap-4 py-4 grow w-full selection:bg-${config.settings.theme_color}-900`}
