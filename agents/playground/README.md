@@ -34,7 +34,6 @@ This will connect you to our example agent, KITT, which is based off of the [min
 cd <playground_dir>
 
 pnpm install
-pnpm dev
 ```
 
 2. Copy and rename the `.env.example` file to `.env.local` and fill in the necessary environment variables.
@@ -45,15 +44,31 @@ LIVEKIT_API_SECRET=<Your API Secret>
 NEXT_PUBLIC_LIVEKIT_URL=wss://<Your Cloud URL>
 ```
 
+> **IMPORTANT**: The `NEXT_PUBLIC_LIVEKIT_URL` environment variable is required for both development and production builds. If not set, the build process will fail in production or show warnings in development mode.
+
 3. Run the development server:
 
 ```bash
-  npm run dev
+npm run dev
 ```
 
 4. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 5. If you haven't done so yet, start your agent (with the same project variables as in step 2.)
 6. Connect to a room and see your agent connecting to the playground
+
+## Environment Variables
+
+The following environment variables are required for the application to function properly:
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `NEXT_PUBLIC_LIVEKIT_URL` | WebSocket URL to your LiveKit server (e.g., wss://your-livekit-server.com) | Yes |
+| `LIVEKIT_API_KEY` | Your LiveKit API key | Yes |
+| `LIVEKIT_API_SECRET` | Your LiveKit API secret | Yes |
+
+### For production deployments
+
+When deploying to production, make sure to set these environment variables in your deployment platform (Vercel, Netlify, etc.). The build will fail if required variables are missing.
 
 ## Features
 

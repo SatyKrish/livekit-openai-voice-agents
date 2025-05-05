@@ -4,18 +4,16 @@ import {
   StartAudio,
 } from "@livekit/components-react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Inter } from "next/font/google";
 import Head from "next/head";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 
 import { PlaygroundConnect } from "@/components/PlaygroundConnect";
 import Playground from "@/components/playground/Playground";
-import { PlaygroundToast, ToastType } from "@/components/toast/PlaygroundToast";
-import { ConfigProvider, useConfig } from "@/hooks/useConfig";
-import { ConnectionMode, ConnectionProvider, useConnection } from "@/hooks/useConnection";
-import { useMemo } from "react";
-import { ToastProvider, useToast } from "@/components/toast/ToasterProvider";
-import { useSession, signIn } from "next-auth/react";
+import { PlaygroundToast } from "@/components/toast/PlaygroundToast";
+import { useConfig } from "@/hooks/useConfig";
+import { ConnectionMode, useConnection } from "@/hooks/useConnection";
+import { useToast } from "@/components/toast/ToasterProvider";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
 const themeColors = [
@@ -29,21 +27,7 @@ const themeColors = [
   "teal",
 ];
 
-const inter = Inter({ subsets: ["latin"] });
-
 export default function Home() {
-  return (
-    <ToastProvider>
-      <ConfigProvider>
-        <ConnectionProvider>
-          <HomeInner />
-        </ConnectionProvider>
-      </ConfigProvider>
-    </ToastProvider>
-  );
-}
-
-export function HomeInner() {
   const { shouldConnect, wsUrl, token, mode, connect, disconnect } =
     useConnection();
   
@@ -58,14 +42,26 @@ export function HomeInner() {
     // Wait for authentication to complete
     if (status === "loading") return;
     
-    // If not authenticated, redirect to sign-in
+    // Set loading to false once authentication state is determined
+    setIsLoading(false);
+
+    // If authentication is required but user is not authenticated, redirect to sign-in
     if (status === "unauthenticated") {
-      signIn();
+      router.push('/auth/signin');
       return;
     }
     
-    setIsLoading(false);
-  }, [status, router]);
+    // Auto-connect if LIVEKIT_URL is set and we're authenticated (or auth is not required)
+    if (process.env.NEXT_PUBLIC_LIVEKIT_URL && (status === "authenticated")) {
+      connect("env").catch(error => {
+        console.error("Failed to auto-connect:", error);
+        setToastMessage({
+          type: "error",
+          message: "Failed to auto-connect: " + error.message
+        });
+      });
+    }
+  }, [status, router, connect, setToastMessage]);
 
   const handleConnect = useCallback(
     async (c: boolean, mode: ConnectionMode) => {
@@ -100,23 +96,17 @@ export function HomeInner() {
         <meta name="description" content={config.description} />
         <meta
           name="viewport"
-          content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+          content="width=device-width, initial-scale=1, maximum-scale=1"
         />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-        <meta
-          property="og:image"
-          content="https://livekit.io/images/og/agents-playground.png"
-        />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="relative flex flex-col justify-center px-4 items-center h-full w-full bg-black repeating-square-background">
+      <main
+        className={`relative flex flex-col w-screen h-screen overflow-hidden repeating-square-background bg-black`}
+      >
         <AnimatePresence>
           {toastMessage && (
             <motion.div
-              className="left-0 right-0 top-0 absolute z-10"
+              className="fixed w-full top-4 flex justify-center z-50"
               initial={{ opacity: 0, translateY: -50 }}
               animate={{ opacity: 1, translateY: 0 }}
               exit={{ opacity: 0, translateY: -50 }}
