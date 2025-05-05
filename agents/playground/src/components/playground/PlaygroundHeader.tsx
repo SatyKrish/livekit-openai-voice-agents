@@ -5,7 +5,7 @@ import { useConfig } from "@/hooks/useConfig";
 import { ConnectionState } from "livekit-client";
 import { Session } from "next-auth";
 import { signOut } from "next-auth/react";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 
 type PlaygroundHeader = {
   logo?: ReactNode;
@@ -29,6 +29,19 @@ export const PlaygroundHeader = ({
   userSession,
 }: PlaygroundHeader) => {
   const { config } = useConfig();
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  
+  // Get initials for user avatar
+  const getUserInitials = () => {
+    if (!userSession?.user?.name) return "U";
+    return userSession.user.name
+      .split(' ')
+      .map(name => name[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
   return (
     <div
       className={`flex gap-4 pt-4 text-${accentColor}-500 justify-between items-center shrink-0`}
@@ -47,17 +60,61 @@ export const PlaygroundHeader = ({
       <div className="flex basis-1/3 justify-end items-center gap-2">
         {/* User info and sign-out button */}
         {userSession && (
-          <div className="flex items-center mr-2">
-            <div className="hidden lg:flex text-white text-xs mr-2">
-              {userSession.user?.name || userSession.user?.email || "User"}
-            </div>
-            <Button
-              accentColor="gray"
-              className="text-xs"
-              onClick={() => signOut({ callbackUrl: '/' })}
+          <div className="flex items-center mr-2 relative">
+            <div 
+              className="flex items-center gap-2 cursor-pointer hover:opacity-80"
+              onClick={() => setShowUserMenu(!showUserMenu)}
             >
-              Sign out
-            </Button>
+              <div className={`flex items-center justify-center w-8 h-8 rounded-full bg-${accentColor}-600 text-white text-xs font-medium`}>
+                {getUserInitials()}
+              </div>
+              <div className="hidden sm:flex text-white text-xs">
+                {userSession.user?.name || userSession.user?.email || "User"}
+              </div>
+              <svg 
+                width="12" 
+                height="12" 
+                viewBox="0 0 12 12" 
+                fill="none" 
+                className={`transition-transform duration-200 ${showUserMenu ? "rotate-180" : ""}`}
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path 
+                  d="M2 4L6 8L10 4" 
+                  stroke="white" 
+                  strokeWidth="1.5" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            
+            {showUserMenu && (
+              <div 
+                className="absolute right-0 top-full mt-2 w-48 rounded-md shadow-lg bg-gray-900 border border-gray-800 z-50"
+                onClick={() => setShowUserMenu(false)}
+              >
+                <div className="rounded-md">
+                  <div className="px-4 py-3 border-b border-gray-800">
+                    <p className="text-sm text-white">Signed in as</p>
+                    <p className="text-xs font-medium text-gray-300 truncate">{userSession.user?.email}</p>
+                  </div>
+                  <div className="py-1">
+                    <button
+                      onClick={() => signOut({ callbackUrl: '/' })}
+                      className="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-800 flex items-center gap-2"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M16 17L21 12L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M21 12H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      Sign out
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
         
